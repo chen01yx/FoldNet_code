@@ -1,0 +1,51 @@
+hydra:
+  job:
+    chdir: True
+  job_logging:
+    root:
+      level: INFO
+      handlers:
+      - file
+      - console
+
+glb_cfg:
+  seed: ${_eval_:'int(__import__("numpy").random.randint(0, 2 ** 31))'}
+  default_float: float32
+  default_int: int32
+
+setup:
+  cuda: 0
+  taichi:
+    arch: cuda
+    device_memory_GB: 4
+  
+    debug: False
+    advanced_optimization: True
+    fast_math: False
+    offline_cache: True
+
+garment: 
+  category: tshirt_sp
+  start_idx: 0
+  num_to_generate: 2
+  mesh_input_dir: 
+  cloth_output_dir: 
+  strategy: synthetic # 'synthetic' / 'polyhaven' / "text2tex" are supported
+  paint:
+    synthetic:
+      client: # "openai" or "dmiapi": client to generate prompt for diffusion model, if None use default prompt
+      group_size: 3 # number of clothes in a group for comparison
+      pipeline: #"stabilityai/stable-diffusion-3.5-large" or "stabilityai/stable-diffusion-3.5-large-turbo"
+      use_same_front_back: True # should front and back use the same texture image?
+      ready_to_use_texture_dir: # if not None, use texture images under this directory instead of generating new one
+    polyhaven:
+      pipeline:
+      cache_dir: # directory storing textures downloaded from polyhaven
+    text2tex:
+      pipeline:
+      identity: "a multicolored tshirt with designs"
+      python: # python interpreter path to run text2tex
+  rating:
+    backend: # "openai", "dmiapi" and "clip_score" are supported. If None, use random selection.
+
+use_ui: true

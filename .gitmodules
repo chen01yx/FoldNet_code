@@ -1,0 +1,12 @@
+[submodule "external/python-urx"]
+	path = external/python-urx
+	url = git@github.com:chen01yx/python-urx.git
+[submodule "external/batch_urdf"]
+	path = external/batch_urdf
+	url = git@github.com:chen01yx/batch_urdf.git
+[submodule "external/bpycv"]
+	path = external/bpycv
+	url = git@github.com:chen01yx/bpycv.git
+[submodule "external/Paint-it"]
+	path = external/Paint-it
+	url = git@github.com:Bowie375/Paint-it.git

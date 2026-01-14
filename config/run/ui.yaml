@@ -1,0 +1,34 @@
+hydra:
+  job:
+    chdir: True
+  job_logging:
+    root:
+      level: INFO
+      handlers:
+      - file
+      - console
+
+glb_cfg:
+  seed: ${_eval_:'int(__import__("numpy").random.randint(0, 2 ** 31))'}
+  default_float: float32
+  default_int: int32
+
+setup:
+  cuda: 0
+  taichi:
+    arch: cuda
+    device_memory_GB: 4
+  
+    debug: False
+    advanced_optimization: True
+    fast_math: False
+    offline_cache: True
+
+garment: 
+  category: tshirt
+  description: default
+  cfg:
+    method: default
+    dist_version: 0
+
+use_ui: true

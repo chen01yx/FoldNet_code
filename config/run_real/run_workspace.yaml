@@ -1,0 +1,37 @@
+hydra:
+  job:
+    chdir: true
+  job_logging:
+    root:
+      level: INFO
+      handlers:
+      - file
+
+misc:
+  seed: ${_eval_:'int(__import__("numpy").random.randint(0, 2 ** 31))'}
+
+realapi:
+  robot_offset_l: [0., 0., -0.005]
+  robot_offset_r: [0., 0., -0.015]
+  grasp_offset_l: [0., 0., -0.030]
+  grasp_offset_r: [0., 0., -0.040]
+  grasp_force_z: 0.02
+  # z_affine_coeff: [0.02, 0.07, 0.02, 0.10] # (z1, z2) -> (z1', z2')
+  press_enter_before_move: true
+  use_visualizer: true
+
+env:
+  use_mask: false
+
+policy:
+  ckpt: data/ckpt/dp_0408_11.ckpt
+  name: dp
+  log_network_results: true
+  ddpm_inference_timestep: 100
+  action_inference_every_n_step: 4
+
+run:
+  step_dt: 0.5
+  asynchronous: false
+  mode: policy # [test, policy]
+  ask_before_policy_action: true

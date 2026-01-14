@@ -1,0 +1,58 @@
+hydra:
+  job:
+    chdir: True
+  job_logging:
+    root:
+      level: INFO
+      handlers:
+      - file
+      - console
+
+glb_cfg:
+  seed: ${_eval_:'int(__import__("numpy").random.randint(0, 2 ** 31))'}
+  default_float: float32
+  default_int: int32
+
+setup:
+  cuda: 0
+  taichi:
+    arch: cuda
+    device_memory_GB: 4
+  
+    debug: False
+    advanced_optimization: True
+    fast_math: False
+    offline_cache: True
+
+garment: 
+  category: tshirt_sp
+  start_idx: 0
+  num_to_generate: 1000
+  cloth_input_dir: 
+  cloth_output_dir: 
+  texture_type: synthetic # synthetic / polyhaven / text2tex
+  sim: 
+    gui: False
+    dump_visualizations: False
+    output_dir: outputs/flex_imgs # directory to save visualized images
+  deform:
+    strategy: pick_and_place
+    simple_drop:
+      drop_height: 0.1
+    pick_and_place:
+      p1: [0.0, 0.0, 0.0]
+      p2: [0.0, 0.0, 0.0]
+      coverage_ratio: 1.0
+      random_pick_place: True
+    random_velocity:
+      n_freq: 100
+      init_cloth_vel_coeff: [1.0, 1.0, 0.5]
+      init_cloth_vel_range: [3.0, 8.0]
+      gather_vel_scale: 5.0
+    random_velocity_and_move_sleeve:
+      n_freq: 100
+      init_cloth_vel_coeff: [1.0, 1.0, 0.5]
+      init_cloth_vel_range: [3.0, 8.0]
+      lift_height: 0.2    
+
+# use_ui: true

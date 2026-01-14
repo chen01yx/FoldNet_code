@@ -1,0 +1,116 @@
+hydra:
+  run:
+    dir: data/fold/policy/exp/${pl.model.seq2seq.name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
+  job:
+    chdir: True
+
+misc:
+  seed: 0 # ${_eval_:'int(__import__("numpy").random.randint(0, 2 ** 31))'}
+  step_offset: 0 #training_step()
+  hardware:
+    precision: high # [highest, high, medium]
+    cuda: True
+    gpuids: [0,1,2,3,4,5,6,7]
+    dtype: float32
+  debug:
+    profiler: Simple
+    model_summary_max_depth: 3
+    timer: false
+
+data:
+  cache:
+    quick_find: true
+    pkl_data: true
+  loader:
+    batch_size: 64
+    num_workers: 16
+    drop_last: true
+  make:
+    valid_ratio: 0.2
+    train_ratio: null
+    err_th: 1.0
+    num_workers: 32
+    statistics_sample: 2000
+    print_percentile: false
+  dataset:
+    height: ${pl.model.height}
+    width: ${pl.model.width}
+    obs_horizon: ${pl.model.obs_horizon}
+    sta_horizon: ${pl.model.sta_horizon}
+    actpred_len: ${pl.model.actpred_len}
+    use_tcp_mask: ${pl.model.use_tcp_mask}
+    dtype: ${misc.hardware.dtype}
+    dtype_obs: float16
+    allow_resample_when_getitem_error: false
+
+pl:
+  model:
+    obs_horizon: 2
+    sta_horizon: 2
+    actpred_len: 8
+    height: 240
+    width: 320
+    dtype: ${misc.hardware.dtype}
+
+    xyz_unit: 5e-2 # only for constant normalization
+    normalize_method: min_max # const, min_max
+    action_repr_gripper: absolute # absolute, relative
+    action_repr_tcp_xyz: relative # absolute, relative
+    weight_gripper: 1e0
+    weight_tcp_xyz: 1e0
+    use_masked_rgb: false
+    use_tcp_mask: false
+    
+    token_dim_obs: 512
+    token_dim_sta: 512
+    sta_enc:
+      hidden_dim: []
+    obs_enc:
+      inc_dim: ${_eval_:'4 if ${pl.model.use_tcp_mask} else 3'}
+      model_name: resnet50
+      pretrain: true
+      use_groupnorm: true
+      use_avgpool: false
+    seq2seq:
+      name: act # mlp, act, dp
+      act:
+        cvae:
+          use_cvae: True
+          kl_weight: 10.
+          latent_dim: 32
+          enc:
+            num_layers: 4
+            nhead: 8
+            dim_feedforward: 3200
+        transformer:
+          dim_feedforward: 3200
+          num_encoder_layers: 4
+          num_decoder_layers: 7
+        action_dec:
+          hidden_dim: [1024]
+  learn:
+    xyz_loss: l1_loss
+    accumulate_grad_batches: 1
+    optimizer:
+      name: AdamW
+      cfg:
+        lr: 2e-5
+        weight_decay: 1e-2
+    scheduler:
+      warmup_steps: 2000
+    valid:
+      plot_batch_idx: [0]
+      plot_num_per_batch: 8
+
+train:
+  path:
+    data_paths: []
+    ckpt:
+  cfg:
+    max_steps: 200000 #training_step()
+    limit_train_batches: 1. # use how much data to train
+    limit_val_batches: 1. # use how much data to validate
+    log_every_n_steps: 100
+    val_check_interval: 2500 # How often (#training_step()) to evaluate on the validation set
+    ckpt_every_n_steps: 5000 # How often (#opt.step()) to save checkpoint (filename of ckpt will include a multiple of #opt.step())
+    ddp_find_unused_parameters: false

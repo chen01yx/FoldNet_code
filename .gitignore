@@ -1,0 +1,15 @@
+__pycache__/
+build/
+*.egg-info/
+
+# My ignores
+**tmp**
+outputs/**
+outputs
+.vscode**
+.DS_Store
+imgui.ini
+**.convex.**
+data/**
+data
+.cache/**

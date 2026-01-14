@@ -1,0 +1,2 @@
+action_smooth: 0.5
+action_inference_every_n_step: 1

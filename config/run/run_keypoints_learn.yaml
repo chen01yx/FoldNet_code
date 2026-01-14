@@ -1,0 +1,118 @@
+hydra:
+  run:
+    dir: outputs/learn/${train.path.exp_name}/${train.path.version_name}/${now:%Y-%m-%d}/${now:%H-%M-%S}/
+  job:
+    chdir: True
+
+misc:
+  seed: 0 # ${_eval_:'int(__import__("numpy").random.randint(0, 2 ** 31))'}
+  hardware:
+    precision: high # [highest, high, medium]
+    cuda: True
+    gpuids: [0, 1, 2, 3, 4, 5, 6, 7]
+    dtype: float32
+  taichi:
+    device: cpu
+    device_memory_GB: 1.
+  debug:
+    profiler: Simple
+    model_summary_max_depth: 5
+
+run: 
+  mode: train
+
+train:
+  category: tshirt_sp
+  path:
+    exp_name: keypoints
+    version_name: v2
+    data_paths: []
+    ckpt: 
+  cfg:
+    step_offset: 0
+    max_steps: 30000 # 18000 ## test=60000
+    limit_train_batches: 1. # use how much data to train
+    limit_val_batches: 1. # use how much data to validate
+    log_every_n_steps: 200
+    val_check_interval: 2000 # How often to evaluate on the validation set
+    # ckpt_every_n_steps: 2000 # How often to save checkpoint
+    accumulate_grad_batches: 1
+
+data:
+  make:
+  common:
+    valid_size: 0.2
+    batch_size: 32
+    num_workers: 4
+    drop_last: False
+  dataset:
+    dtype: ${misc.hardware.dtype}
+    aug:
+      patch:
+        use_patch : False
+        max_patch_size: 32
+        min_patch_size: 16
+        max_patch_num: 8
+
+pl:
+  ablation:
+    only_use_mask_as_input: False
+
+  model:
+    d_unit: 0.1
+    net:
+      UNet:
+        input_dims: [2, 1024, 1024]
+        channels_list: [64, 128, 256, 512, 1024, 2048]
+        classif_output_mlp_dims: [[64, 16, 1]]
+        conv_out_dim: null
+      MaxVitUnet:
+        pass_rgb_to_decoder: False
+        use_conv_on_encoder_output: False
+
+    backbone: "MaxVitUnet"
+    heatmap_sigma: 7 # The size of the Gaussian blobs that are used to create the ground truth heatmaps from the keypoint coordinates.
+    minimal_keypoint_extraction_pixel_distance: 1 # the minimal pixel-distance between two keypoints. Allows for some non-maximum suppression.
+    maximal_gt_keypoint_pixel_distances: "4 8" # The treshold distance(s) for the AP metric to consider a detection as a True Positive. Separate multiple values by a space to compute the AP for all values.
+    ap_epoch_start: 1 # Epoch at which to start calculating the AP every `ap_epoch_frequency` epochs.
+    ap_epoch_freq: 2 # Rate at which to calculate the AP metric if epoch > `ap_epoch_start`
+    max_keypoints: 20 # the maximum number of keypoints to predict from the generated heatmaps. If set to -1, skimage will look for all peaks in the heatmap, if set to N (N>0) it will return the N most most certain ones.
+
+    keypoint_channel_configuration: ${keypoint_channels.${train.category}}
+
+  learn:
+    test:
+      num_batches_to_visualize: 0
+      output_dir: 
+    optimizer:
+      name: AdamW # Adam
+      cfg:
+        lr: 1e-4
+        weight_decay: 1e-2 # 3e-4
+    schedule:
+      name: MultiStepLR # OnPlateauLRScheduler
+      cfg:
+        milestones: [200, 500]
+        gamma: 0.1
+        # lr_scheduler_relative_threshold: 0.0
+
+keypoint_channels:
+  tshirt_sp: ["r_collar_o", "r_shoulder", "r_sleeve_top", 
+              "r_sleeve_bottom", "r_armpit", "r_corner", 
+              "l_corner", "l_armpit", "l_sleeve_bottom", 
+              "l_sleeve_top", "l_shoulder", "l_collar_o", 
+              "neck_b_o", "neck_f_o"]
+  
+  trousers: ["r_corner", "r_leg_o", "r_leg_i", 
+             "crotch", "l_leg_i", "l_leg_o", 
+             "l_corner", "top_ctr_f"]
+
+  vest: ["r_collar", "r_shoulder", "r_armpit", "r_corner",
+         "l_corner", "l_armpit", "l_shoulder", "l_collar",
+         "neck_b_o", "neck_f_o"]
+  
+  hooded: ["r_collar", "r_shoulder", "r_sleeve_top", 
+           "r_sleeve_bottom", "r_armpit", "r_corner", 
+           "l_corner", "l_armpit", "l_sleeve_bottom", 
+           "l_sleeve_top", "l_shoulder", "l_collar",
+           "hood_top", "neck_f"]

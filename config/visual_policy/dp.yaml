@@ -1,0 +1,3 @@
+action_smooth: 1e-3
+action_inference_every_n_step: 4
+ddpm_inference_timestep: 100

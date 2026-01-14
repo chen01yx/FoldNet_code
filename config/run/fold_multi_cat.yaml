@@ -1,0 +1,45 @@
+hydra:
+  job:
+    chdir: true
+  job_logging:
+    root:
+      level: INFO
+      handlers:
+      - file
+
+misc:
+  use_timer: true
+  seed: ${_eval_:'int(__import__("numpy").random.randint(0, 2 ** 31))'}
+
+env:
+  cloth_obj_path: mesh_tmp/proc/mesh.obj
+  cloth_scale: 0.5
+
+  render_set: train # train or valid
+  render_mode: ["head"]
+  render_method: blender
+  render_remove_tmp_files: false
+  render_process_num: 2
+  render_blender_camera_size_level: 2
+
+policy:
+  gt:
+    enable_not_correct_action: false
+  run:
+    name: state # [state, visual, hybrid]
+    state:
+      not_correct_action_prob: 0.0
+    visual:
+      name: dp # [act, mlp, dp]
+      ckpt: xxx
+    hybrid:
+      name: dp # [act, mlp, dp]
+      ckpt: xxx
+
+run:
+  traj_num: 1
+  pre_and_post_overwrite_render: false
+  generate_fold_gt_overwrite_render: false
+  sync_per_traj: true
+  category: tshirt
+  style: 0

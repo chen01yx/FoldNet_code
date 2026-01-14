@@ -1,0 +1,11 @@
+hydra:
+  job:
+    chdir: True
+  job_logging:
+    root:
+      level: INFO
+      handlers:
+      - file
+
+category: tshirt
+clothes_name: tshirt_ss_0
