@@ -39,8 +39,10 @@ We provide compiled pyflex for python 3.9. Please refer to src/pyflex/libs/how_t
     export LD_LIBRARY_PATH="$PYFLEX_PATH/libs":$LD_LIBRARY_PATH
     ```
 - Install
+    ```
     sudo apt install libasound2
     sudo apt install libegl1
+    ```
 - Test
     ```
     import pyflex
